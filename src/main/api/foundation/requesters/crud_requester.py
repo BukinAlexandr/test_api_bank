@@ -44,3 +44,8 @@ class CrudRequester(HttpRequester):
         )
         self.response_spec(response)
         return response
+
+    def get_by_id(self, obj_id: int):
+        url = f"{Config.fetch('backendUrl')}{self.endpoint.value.url}".format(id=obj_id)
+        response = requests.get(url=url, headers=self.request_spec)
+        return response

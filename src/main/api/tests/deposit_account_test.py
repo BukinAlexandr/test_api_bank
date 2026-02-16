@@ -1,45 +1,29 @@
 import pytest
 from src.main.api.models.deposit_account_request import DepositAccountRequest
 
-
 @pytest.mark.api
 class TestDepositAccount:
-    def test_deposit_account_valid(self, api_manager, create_user_request):
+    def test_deposit_account_valid(self, api_manager, account, account_snapshot):
+        b1, n1 = account_snapshot(account.id)
 
-        """1) Создание банковского счета"""
-        response = api_manager.user_steps.create_account(create_user_request)
+        api_manager.user_steps.deposit_account(
+            DepositAccountRequest(accountId=account.id, amount=7000)
+        )
 
-        account_id = response.id
-        assert response.balance == 0
+        b2, n2 = account_snapshot(account.id)
+        assert b2 == b1 + 7000
+        assert n2 == n1 + 1
 
-        """2) Пополнение банковского счета"""
+    @pytest.mark.parametrize("amount", [999, 9001])
+    def test_deposit_account_invalid(self, amount, api_manager, account, account_snapshot):
+        b1, n1 = account_snapshot(account.id)
 
-        deposit_account = DepositAccountRequest(accountId=account_id, amount=7000)
-        deposit_response = api_manager.user_steps.deposit_account(deposit_account)
+        api_manager.user_steps.deposit_account_invalid(
+            DepositAccountRequest(accountId=account.id, amount=amount)
+        )
 
-        assert deposit_response.balance == 7000
-        assert deposit_response.id == account_id
+        b2, n2 = account_snapshot(account.id)
+        assert b2 == b1
+        assert n2 == n1
 
-
-
-
-    @pytest.mark.parametrize(
-        "amount",[
-            999,
-            9001
-        ]
-    )
-    def test_deposit_account_invalid(self, amount, api_manager, create_user_request):
-
-        """1) Создание банковского счета"""
-
-        response = api_manager.user_steps.create_account(create_user_request)
-
-        account_id = response.id
-        assert response.balance == 0
-
-        """2) Пополнение банковского счета"""
-
-        deposit_account = DepositAccountRequest(accountId=account_id, amount=amount)
-        api_manager.user_steps.deposit_account_invalid(deposit_account)
 

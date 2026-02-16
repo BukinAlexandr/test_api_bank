@@ -1,66 +1,40 @@
 import pytest
-from src.main.api.models.deposit_account_request import DepositAccountRequest
-from src.main.api.models.transfer_account_request import TransferAccountRequest
 
 @pytest.mark.api
 class TestTransferAccount:
+    def test_transfer_account_valid(self, api_manager, two_accounts_with_money_on_source, transfer_request_factory, account_snapshot):
+        src, dst = two_accounts_with_money_on_source
 
-    def test_transfer_account_valid(self, api_manager, create_user_request):
+        b1s, n1s = account_snapshot(src.id)
+        b1d, n1d = account_snapshot(dst.id)
 
-        """1) Создание первого банковского счета"""
+        api_manager.user_steps.transfer_account(
+            transfer_request_factory(src.id, dst.id, 4000)
+        )
 
-        response = api_manager.user_steps.create_account(create_user_request)
+        b2s, n2s = account_snapshot(src.id)
+        b2d, n2d = account_snapshot(dst.id)
 
-        assert response.balance == 0
-        account_one = response.id
+        assert b2s == b1s - 4000
+        assert b2d == b1d + 4000
+        assert n2s == n1s + 1
+        assert n2d == n1d + 1
 
-        """2) Создание и пополнение второго банковского счета"""
+    def test_transfer_account_invalid(self, api_manager, two_accounts, transfer_request_factory, account_snapshot):
+        src, dst = two_accounts
 
-        response = api_manager.user_steps.create_account(create_user_request)
-
-        account_two = response.id
-        assert response.balance == 0
-
-        deposit_account = DepositAccountRequest(accountId=account_two, amount=7000)
-        deposit_response = api_manager.user_steps.deposit_account(deposit_account)
-
-        assert deposit_response.balance == 7000
-        assert deposit_response.id == account_two
-
-        """3) Перевод с банковского счет №1 на банковский счет №2"""
-
-        transfer_account_request = TransferAccountRequest(fromAccountId=account_two,toAccountId=account_one,amount=4000)
-
-        response = api_manager.user_steps.transfer_account(transfer_account_request)
-
-        assert response.fromAccountIdBalance == 3000
+        b1s, n1s = account_snapshot(src.id)
+        b1d, n1d = account_snapshot(dst.id)
 
 
+        api_manager.user_steps.transfer_account_invalid(
+            transfer_request_factory(src.id, dst.id, 500)
+        )
 
-    def test_transfer_account_invalid(self, api_manager, create_user_request):
+        b2s, n2s = account_snapshot(src.id)
+        b2d, n2d = account_snapshot(dst.id)
 
-        """1) Создание первого банковского счета"""
-
-        response = api_manager.user_steps.create_account(create_user_request)
-
-        assert response.balance == 0
-        account_one = response.id
-
-        """2) Создание и пополнение второго банковского счета"""
-
-        response = api_manager.user_steps.create_account(create_user_request)
-
-        account_two = response.id
-        assert response.balance == 0
-
-        deposit_account = DepositAccountRequest(accountId=account_two, amount=7000)
-        deposit_response = api_manager.user_steps.deposit_account(deposit_account)
-
-        assert deposit_response.balance == 7000
-        assert deposit_response.id == account_two
-
-        """3) Перевод с банковского счет №1 на банковский счет №2"""
-
-        transfer_account_request = TransferAccountRequest(fromAccountId=account_two,toAccountId=account_one,amount=7001)
-
-        api_manager.user_steps.transfer_account_invalid(transfer_account_request)
+        assert b2s == b1s
+        assert b2d == b1d
+        assert n2s == n1s
+        assert n2d == n1d

@@ -1,9 +1,7 @@
 from typing import List, Any
-
 from src.main.api.foundation.endpoint import Endpoint
 from src.main.api.foundation.requesters.crud_requester import CrudRequester
 from src.main.api.foundation.requesters.validate_crud_requester import ValidateCrudRequester
-from src.main.api.models import create_user_request, create_credit_user_request
 from src.main.api.models.close_credit_request import CloseCreditRequest
 from src.main.api.models.create_credit_user_request import CreateCreditUserRequest
 from src.main.api.models.create_user_request import CreateUserRequest
@@ -102,3 +100,17 @@ class UserSteps(BaseSteps):
             Endpoint.CLOSE_CREDIT_ACCOUNT,
             ResponseSpecs.request_entity()
         ).post(close_credit_request)
+
+    def get_account_transactions(self, account_id: int):
+        return ValidateCrudRequester(
+            RequestSpecs.auth_headers(username=self._username, password=self._password),
+            Endpoint.ACCOUNT_TRANSACTIONS,
+            ResponseSpecs.request_ok()
+        ).get_by_id(account_id)
+
+    def get_credit_history(self):
+        return ValidateCrudRequester(
+            RequestSpecs.auth_headers(username=self._username, password=self._password),
+            Endpoint.CREDIT_HISTORY,
+            ResponseSpecs.request_ok()
+        ).get()

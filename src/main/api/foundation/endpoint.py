@@ -1,4 +1,6 @@
 from enum import Enum
+
+from src.main.api.models.account_transactions_response import AccountTransactionsResponse
 from src.main.api.models.base_model import BaseModel
 from typing import Optional, Type
 from dataclasses import dataclass
@@ -10,6 +12,7 @@ from src.main.api.models.create_user_request import CreateUserRequest
 from src.main.api.models.create_user_response import CreateUserResponse
 from src.main.api.models.credit_account_request import CreditAccountRequest
 from src.main.api.models.credit_account_response import CreditAccountResponse
+from src.main.api.models.credit_history_response import CreditHistoryResponse
 from src.main.api.models.deposit_account_request import DepositAccountRequest
 from src.main.api.models.deposit_account_response import DepositAccountResponse
 from src.main.api.models.get_users_response import GetUsersResponse
@@ -85,4 +88,17 @@ class Endpoint(Enum):
         url="/admin/create",
         response_model=CreateUserResponse
     )
+
+    ACCOUNT_TRANSACTIONS = EndpointConfiguration(
+        request_model=None,
+        url="/account/transactions/{id}",
+        response_model=AccountTransactionsResponse
+    )
+
+    CREDIT_HISTORY = EndpointConfiguration(
+        request_model=None,
+        url="/credit/history",
+        response_model=CreditHistoryResponse
+    )
+
 
