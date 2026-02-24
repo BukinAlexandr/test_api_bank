@@ -29,9 +29,14 @@ class CrudRequester(HttpRequester):
         self.response_spec(response)
         return response
 
-    def get(self) -> Response:
+    def get(self, path_params: dict | None = None) -> Response:
+        url = self.endpoint.value.url
+
+        if path_params:
+            url = url.format(**path_params)
+
         response = requests.get(
-            url=f"{Config.fetch('backendUrl')}{self.endpoint.value.url}",
+            url=f"{Config.fetch('backendUrl')}{url}",
             headers=self.request_spec,
         )
         self.response_spec(response)
@@ -43,9 +48,4 @@ class CrudRequester(HttpRequester):
             headers=self.request_spec,
         )
         self.response_spec(response)
-        return response
-
-    def get_by_id(self, obj_id: int):
-        url = f"{Config.fetch('backendUrl')}{self.endpoint.value.url}".format(id=obj_id)
-        response = requests.get(url=url, headers=self.request_spec)
         return response

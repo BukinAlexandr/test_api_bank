@@ -1,6 +1,4 @@
 from enum import Enum
-
-from src.main.api.models.account_transactions_response import AccountTransactionsResponse
 from src.main.api.models.base_model import BaseModel
 from typing import Optional, Type
 from dataclasses import dataclass
@@ -12,9 +10,10 @@ from src.main.api.models.create_user_request import CreateUserRequest
 from src.main.api.models.create_user_response import CreateUserResponse
 from src.main.api.models.credit_account_request import CreditAccountRequest
 from src.main.api.models.credit_account_response import CreditAccountResponse
-from src.main.api.models.credit_history_response import CreditHistoryResponse
 from src.main.api.models.deposit_account_request import DepositAccountRequest
 from src.main.api.models.deposit_account_response import DepositAccountResponse
+from src.main.api.models.get_history_response import GetHistoryResponse
+from src.main.api.models.get_transactions_response import TransactionResponse, AccountResponse
 from src.main.api.models.get_users_response import GetUsersResponse
 from src.main.api.models.login_user_request import LoginUserRequest
 from src.main.api.models.login_user_response import LoginUserResponse
@@ -89,16 +88,14 @@ class Endpoint(Enum):
         response_model=CreateUserResponse
     )
 
-    ACCOUNT_TRANSACTIONS = EndpointConfiguration(
+    GET_TRANSACTIONS = EndpointConfiguration(
         request_model=None,
         url="/account/transactions/{id}",
-        response_model=AccountTransactionsResponse
+        response_model=AccountResponse
     )
 
-    CREDIT_HISTORY = EndpointConfiguration(
+    GET_HISTORY = EndpointConfiguration(
         request_model=None,
         url="/credit/history",
-        response_model=CreditHistoryResponse
+        response_model=GetHistoryResponse
     )
-
-

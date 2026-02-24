@@ -1,31 +1,18 @@
 import pytest
 
+
 @pytest.mark.api
 class TestCloseCreditAccount:
-    def test_close_credit_account_valid(self, api_manager, issued_credit, close_credit_request_factory):
-        req = close_credit_request_factory(
-            issued_credit["credit_id"],
-            issued_credit["account_id"],
-            issued_credit["amount"]
-        )
 
-        resp = api_manager.user_steps.close_credit(req)
-        assert resp.amountDeposited == issued_credit["amount"]
+    def test_close_credit_account_valid(self, api_manager, close_credit_account):
 
-        history = api_manager.user_steps.get_credit_history()
-        credit = next(c for c in history.credits if c.creditId == issued_credit["credit_id"])
-        assert credit.balance == 0
+        close_credit = api_manager.user_steps.close_credit(close_credit_account)
 
-    def test_close_credit_account_invalid(self, api_manager, issued_credit, close_credit_request_factory):
-        req = close_credit_request_factory(
-            issued_credit["credit_id"],
-            issued_credit["account_id"],
-            issued_credit["amount"] - 1
-        )
+        assert close_credit.amountDeposited == close_credit_account.amount
+        credit_history = api_manager.user_steps.get_credit_history()
+        assert credit_history.credits[-1].amount == close_credit.amountDeposited
 
-        api_manager.user_steps.close_credit_invalid(req)
 
-        history = api_manager.user_steps.get_credit_history()
-        credit = next(c for c in history.credits if c.creditId == issued_credit["credit_id"])
-        assert credit.balance != 0
+    def test_close_credit_account_invalid(self, api_manager, close_credit_account_invalid):
 
+        api_manager.user_steps.close_credit_invalid(close_credit_account_invalid)

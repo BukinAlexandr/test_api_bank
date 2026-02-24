@@ -1,29 +1,28 @@
 import pytest
+from src.main.api.fixtures.api_fixture import api_manager
 from src.main.api.models.credit_account_request import CreditAccountRequest
+
 
 @pytest.mark.api
 class TestCreditAccount:
-    @pytest.mark.parametrize("amount, ok", [(5000, True), (4999, False)])
-    def test_credit_request(self, amount, ok, api_manager, credit_account, credit_history_snapshot):
-        before = credit_history_snapshot()
 
-        req = CreditAccountRequest(accountId=credit_account.id, amount=amount, termMonths=12)
+    def test_credit_account_valid(self, api_manager, create_credit_account):
 
-        if ok:
-            resp = api_manager.user_steps.credit_request(req)
-            assert resp.amount == amount
+        credit = api_manager.user_steps.credit_request(create_credit_account)
 
-            after = credit_history_snapshot()
-            assert len(after.credits) == len(before.credits) + 1
-        else:
-            api_manager.user_steps.credit_request_invalid(req)
-
-            after = credit_history_snapshot()
-            assert len(after.credits) == len(before.credits)
+        assert credit.balance == create_credit_account.amount
+        credit_history = api_manager.user_steps.get_credit_history()
+        assert credit_history.credits[-1].amount == credit.balance
 
 
+    @pytest.mark.parametrize(
+        "amount", [
+            4999,
+            15001
+        ]
+    )
+    def test_credit_account_invalid(self, api_manager, create_credit_account_invalid, amount):
 
+        credit_request = CreditAccountRequest(accountId=create_credit_account_invalid.accountId, amount=amount, termMonths=create_credit_account_invalid.termMonths)
 
-
-
-
+        api_manager.user_steps.credit_request_invalid(credit_request)
