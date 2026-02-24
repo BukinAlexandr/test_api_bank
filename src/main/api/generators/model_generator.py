@@ -1,0 +1,79 @@
+import random
+import uuid
+import rstr
+from typing import Any, get_type_hints, Annotated, get_origin, get_args
+from src.main.api.generators.creation_rule import CreationRule
+
+
+class RandomModelGenerator:
+    @staticmethod
+    def generate(cls: type) -> Any:
+        type_hints = get_type_hints(cls, include_extras=True)
+        init_data = {}
+
+        for field_name, annotated_type in type_hints.items():
+            rule = None
+            actual_type = annotated_type()
+
+            if get_origin(annotated_type) is Annotated:
+                actual_type, *annotations = get_args(annotated_type)
+                for ann in annotations:
+                    if isinstance(ann, CreationRule):
+                        rule = ann
+
+            if rule:
+                value = RandomModelGenerator._generate_from_regex(rule.regex, actual_type)
+            else:
+                value = RandomModelGenerator._generate_value(actual_type)
+
+            init_data[field_name] = value
+
+        return cls(**init_data)
+
+    @staticmethod
+    def _generate_with_rule(rule: CreationRule, field_type: type):
+
+        # int
+        if field_type is int:
+            lo = int(rule.min_value) if rule.min_value is not None else 1
+            hi = int(rule.max_value) if rule.max_value is not None else 100
+            return random.randint(lo, hi)
+
+        # float
+        if field_type is float:
+            lo = float(rule.min_value) if rule.min_value is not None else 0.0
+            hi = float(rule.max_value) if rule.max_value is not None else 100.0
+            value = random.uniform(lo, hi)
+            precision = rule.precision if rule.precision is not None else 2
+            return round(value, precision)
+
+        # fallback для regex (str)
+        if rule.regex:
+            generated = rstr.xeger(rule.regex)
+            return generated
+
+    @staticmethod
+    def _generate_from_regex(regex: str, field_type: type) -> Any:
+        generated = rstr.xeger(regex)
+        if field_type is int:
+            return int(generated)
+        if field_type is float:
+            return generated
+        return generated
+
+    @staticmethod
+    def _generate_value(field_type: type) -> Any:
+        if field_type is str:
+            return str(uuid.uuid4())[:8]
+        elif field_type is int:
+            return random.randint(1, 9999)
+        elif field_type is float:
+            return round(random.uniform(0,100.), 2)
+        elif field_type is bool:
+            return random.choice([True, False])
+        elif field_type is list:
+            return [str(uuid.uuid4())[:5]]
+        elif isinstance(field_type, type):
+            return RandomModelGenerator.generate(field_type)
+        return None
+
