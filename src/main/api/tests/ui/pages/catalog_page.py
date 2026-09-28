@@ -33,7 +33,7 @@ class CatalogPage:
         self.sort_select.select_option(option)
 
     def add_to_cart(self, product_name: str):
-        card =self.product_cards.filter(has_text=product_name)
+        card = self.product_cards.filter(has_text=product_name)
         button = card.locator("button")
         if button.inner_text() == "Add to cart":
             button.click()

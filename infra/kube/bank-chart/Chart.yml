@@ -1,0 +1,8 @@
+apiVersion: v2
+appVersion: 1.1.0
+description: Bank application
+name: Bank
+type: application
+version: 0.0.1
+
+
